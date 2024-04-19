@@ -83,7 +83,7 @@ def main():
     """
     access_points = [
         {
-            'macAddress': 'd4:35:1d:5d:3c:be',  # you can type your bssid mac address for example
+            'macAddress': '',  # you can type your bssid mac address for example
         }
     ]
 
