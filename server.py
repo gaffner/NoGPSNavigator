@@ -15,9 +15,8 @@ def root():
 
 
 @app.post('/wifi')
-def wifi(access_points: Dict):
-    wifi_list = access_points['wifi']
-    converted_request = convert_nogps_request_to_google_request(wifi_list)
+def wifi(access_points: List[Dict]):
+    converted_request = convert_nogps_request_to_google_request(access_points)
 
     return get_location_from_wifi(converted_request)
 
@@ -35,4 +34,4 @@ def reverse_geocoding(lating: str):
 if __name__ == '__main__':
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host="127.0.0.1", port=8080)
