@@ -42,11 +42,7 @@ def get_location_from_wifi(access_points: List[Dict]) -> Dict:
         if response.status_code == 200:  # Check if the request was successful
             result = response.json()
             data = {
-                'location':
-                {
-                    'latitude': result['location']['lat'],
-                    'longitude': result['location']['lng']
-                },
+                'lating': f"{result['location']['lat']},{result['location']['lng']}",
                 'accuracy':
                     {
                         'value': result['accuracy'],
