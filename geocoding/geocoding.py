@@ -1,3 +1,5 @@
+from typing import Dict
+
 import requests
 
 from utils import read_config
@@ -30,7 +32,7 @@ def get_address_from_lating(lating: str) -> str:
         return str(e)
 
 
-def get_lating_from_address(address: str) -> str:
+def get_lating_from_address(address: str) -> Dict:
     parsed_config = read_config()
     api_key = parsed_config.get('google_api')
     headers = {
@@ -49,10 +51,11 @@ def get_lating_from_address(address: str) -> str:
         if response.status_code == 200:  # Check if the request was successful
             result = response.json()
             try:
-                return str(str(result['results'][0]['geometry']['location']['lat']) + ', ' +
-                        str(result['results'][0]['geometry']['location']['lng']))
+                return {'lating': str(str(result['results'][0]['geometry']['location']['lat']) + ', ' +
+                                      str(result['results'][0]['geometry']['location']['lng'])),
+                        'address': result['results'][0]['formatted_address']}
             except KeyError:
-                return address
+                return {'error': 'Unknown error occurred'}
 
     except Exception as e:
         return str(e)
