@@ -23,7 +23,7 @@
     <string name="who_we_are_title">מי אנחנו?</string>
     <string name="how_it_works">כיצד האפליקציה עובדת</string>
     <string name="how_it_works_description">האפליקציה עושה שימוש במגוון חיישני הטלפון (בעיקר WIFI ותאי סלולאר) על מנת לקבוע את מיקום המשתמש. האפליקציה *אינה* עושה שימוש טכנולוגיה חדשה, ולמעשה אותה הטכנולוגיה הזאת כבר מוטמעת בסמארטפונים המודרניים (מקוטלג תחת "Coarse Location") ונעשה בה שימוש באפליקציות הניווט המוכרות. הייחודיות של האפליקציה היא הסתמכות בלעדית על אותם מזהי מיקום "חלשים" שהסמארטפון חשוף אליהם, ובשילוב עם מנגנונים נוספים מייעלת את דיוק המיקום.</string>
-    <string name="nogpscontact_mail_nogpsnavigator_top">לפניות/התנדבות צרו קשר עם nogpscontact@gmail.com</string>
+    <string name="nogpscontact_mail_nogpsnavigator_top">לפניות/דיווח באגים/התנדבות צרו קשר עם nogpscontact@gmail.com</string>
     <string name="whats_new">מה חדש?</string>
     <string name="title_activity_bottom_test">bottom_test</string>
     <string name="title_navigate">ניווט</string>
@@ -31,4 +31,5 @@
     <string name="title_about">אודות</string>
     <string name="status">סטטוס תקינות</string>
     <string name="na_status">N/A</string>
+    <string name="application_created">[+] Application created</string>
 </resources>

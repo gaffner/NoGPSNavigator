@@ -69,7 +69,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="יש להקליד את מיקום" />
+            android:text="יש להקליד את נקודת ההתחלה ונקודת הסיום (בעברית או באנגלית), כאשר רצוי להיות מפורטים. לדוגמה: הטכניון חיפה, או קניון עזריאלי תל אביב. לאחר מכן יש ללחוץ על מקש הסיום במקלדת (לרוב וי בצד ימין למטה), או ללחוץ על תיבת טקסט אחרת. תהליך התרגום קורה אוטומטית, ותיודעו אם הוא לא יצליח. ניתן גם להקליד קורדינטות אם ידועות, בתיבות הטקסט מצד שמאל." />
     </LinearLayout>
 
     <LinearLayout
@@ -109,32 +109,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="שחרור גרסאת 0.1 Beta" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="15dp"
-            android:paddingBottom="15dp"
-            android:text="מה התכנון לגרסה הבאה?"
-            android:textSize="20sp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="תמיכה בניווט בזמן אמת" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="תמיכה במד צעדים" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="10dp"
-            android:text="*השינויים תקפים לגרסאת Major*"
-            android:textColor="#8F8E8E"
-            android:textStyle="italic" />
 
     </LinearLayout>
 </LinearLayout>
