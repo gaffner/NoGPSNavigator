@@ -11,7 +11,7 @@ requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.
 
 
 
-def get_location_from_wifi(access_points: List[Dict]) -> Dict:
+def get_location_from_wifi(access_points: List[Dict]) -> List:
     """
     Searches for a network with a specific BSSID in the Google geolocation API.
     :param access_points: list of bssid's for each access point, and strength length
@@ -53,17 +53,17 @@ def get_location_from_wifi(access_points: List[Dict]) -> Dict:
                         'type': 'meter'
                     }
                 }
-            return data
+            return [data]
         else:
-            return {
+            return [{
                 'module': 'google',
                 'error': response.json()['error']['message']
-            }
+            }]
     except Exception as e:
-        return {
+        return [{
             'module': 'google',
             'error': str(e)
-        }
+        }]
 
 
 def main():
