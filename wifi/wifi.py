@@ -2,13 +2,10 @@ from typing import Dict, List
 
 import requests
 
-from wifi.consts import default_macaddress
 from utils import read_config
+from wifi.consts import default_macaddress
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
-
-
-
 
 
 def get_location_from_wifi(access_points: List[Dict]) -> List:
@@ -43,16 +40,16 @@ def get_location_from_wifi(access_points: List[Dict]) -> List:
             result = response.json()
             data = {
                 'location':
-                {
-                    'latitude': result['location']['lat'],
-                    'longitude': result['location']['lng']
-                },
+                    {
+                        'latitude': result['location']['lat'],
+                        'longitude': result['location']['lng']
+                    },
                 'accuracy':
                     {
                         'value': result['accuracy'],
                         'type': 'meter'
                     }
-                }
+            }
             return [data]
         else:
             return [{

@@ -25,7 +25,7 @@ def get_address_from_lating(lating: str) -> str:
             result = response.json()
             try:
                 return result["results"][0]["formatted_address"]
-            except KeyError:
+            except (KeyError, IndexError):
                 return lating
 
     except Exception as e:
