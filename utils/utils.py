@@ -24,10 +24,6 @@ def read_config() -> Dict:
 
 
 def convert_nogps_request_to_google_request(request: List[Dict]):
-    log_request(request)
+    converted = [{'macAddress': access_point['macAddress']} for access_point in request]
 
-    return request
-
-
-def log_request(request):
-    pass
+    return converted
