@@ -29,7 +29,6 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        System.out.println("fuck you all");
         Log.i("Log", "baby");
 //        Toast.makeText(getApplicationContext(), "This is a toast message", Toast.LENGTH_SHORT).show();
 

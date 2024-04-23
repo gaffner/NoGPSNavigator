@@ -5,22 +5,14 @@ import static android.content.Context.MODE_PRIVATE;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.content.SharedPreferences;
-
-
-import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-
 import android.os.Handler;
-import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,20 +22,22 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.JsonRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 
 import java.util.List;
 
@@ -54,6 +48,10 @@ public class SecondFragment extends Fragment {
 
     private boolean isFirstRun = true;
 
+    public SecondFragment() {
+        // require a empty public constructor
+    }
+
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -62,17 +60,30 @@ public class SecondFragment extends Fragment {
             SharedPreferences logger = getContext().getSharedPreferences("logs", MODE_PRIVATE);
             logger.edit().remove("content").commit();
 
+            if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_WIFI_STATE) != PackageManager.PERMISSION_GRANTED) {
+                Helper.add_log_line(getContext(), "ACCESS WIFI permission missing");
+
+            } else {
+                Helper.add_log_line(getContext(), "ACCESS WIFI STATE enabled");
+            }
+            if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.CHANGE_WIFI_STATE) != PackageManager.PERMISSION_GRANTED) {
+                Helper.add_log_line(getContext(), "CHANGE WIFI permission missing");
+            } else {
+                Helper.add_log_line(getContext(), "CHANGE WIFI STATE enabled");
+            }
+            if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                Helper.add_log_line(getContext(), "ACCESS FINE permission missing");
+            } else {
+                Helper.add_log_line(getContext(), "ACCESS FINE LOCATION enabled");
+            }
+
             isFirstRun = false;
         }
     }
 
-    public SecondFragment() {
-        // require a empty public constructor
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        locationManager = (LocationManager) requireContext().getSystemService(Context.LOCATION_SERVICE);
+        locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
 
         return inflater.inflate(R.layout.fragment_second, container, false);
     }
@@ -90,6 +101,10 @@ public class SecondFragment extends Fragment {
         });
 
         search_button.setOnClickListener(v -> {
+            if (!validate_locations()) {
+                Toast.makeText(getContext(), "Resolving addresses, try again!", Toast.LENGTH_SHORT).show();
+            }
+
             EditText source = (EditText) getView().findViewById(R.id.starting_point_xy);
             EditText destination = (EditText) getView().findViewById(R.id.ending_point_xy);
 
@@ -144,45 +159,41 @@ public class SecondFragment extends Fragment {
         });
 
 
-        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) {
-            add_log_line("Got ACCESS WIFI permission");
-        }
-        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.CHANGE_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) {
-            add_log_line("Got CHANGE WIFI permission");
-        }
-        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            add_log_line("Got ACCESS_FINE_LOCATION");
-        }
-        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            add_log_line("Got COARSE permission");
-        }
     }
 
     private void setStreetName(EditText street_editText, EditText xy_editText) {
         String raw_street_name = street_editText.getText().toString();
-        add_log_line("Trying to translate " + raw_street_name + "...");
+        Helper.add_log_line(getContext(), "trying to translate " + raw_street_name);
 
 
-        RequestQueue queue = Volley.newRequestQueue(requireContext());
+        RequestQueue queue = Volley.newRequestQueue(getContext());
         String url = "http://nogpsnavigator.top/geocoding/" + raw_street_name;
         // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-                        street_editText.setText(jsonObject.getString("address"));
-                        xy_editText.setText(jsonObject.getString("lating"));
+                        if (jsonObject.getString("address").equals("unknown")) {
+                            street_editText.setText("Address not found... Try again");
+                            Helper.add_log_line(getContext(), "failed setting street name");
+                        } else {
+                            street_editText.setText(jsonObject.getString("address"));
+                            xy_editText.setText(jsonObject.getString("lating"));
+                            Helper.add_log_line(getContext(), "success in setting street name");
+                        }
+
                     } catch (JSONException e) {
-                        Toast.makeText(requireContext(), response, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), response, Toast.LENGTH_SHORT).show();
                         street_editText.setText("Address not found... Try again");
-                        add_log_line("Failed setting street name: " + e.toString());
+                        Helper.add_log_line(getContext(), "failed setting street name: " + e.toString());
                     }
 
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(requireContext(), "Failed setting street name... please try again!", Toast.LENGTH_SHORT).show();
-                add_log_line("Failed setting street name: " + error.toString());
+                street_editText.setText("Address not found... Try again");
+                String description = Helper.volley_error_description(error);
+                Helper.add_log_line(getContext(), "failed setting street name: " + description);
             }
 
         });
@@ -193,17 +204,23 @@ public class SecondFragment extends Fragment {
 
     private void setLocation() {
         try {
-            add_log_line("Trying to get wifi coordinates");
+            Helper.add_log_line(getContext(), "trying to get wifi coordinates");
             wifi_coordinates();
+            Helper.add_log_line(getContext(), "success in getting wifi coordinates");
         } catch (Exception e) {
-            add_log_line("Trying to get cellular coordinates [Normal flow]");
-            cellular_coordinates();
+            Helper.add_log_line(getContext(), "error in WIFI API: " + e.getMessage());
+            try {
+                Helper.add_log_line(getContext(), "trying to get cellular coordinates [Normal flow]");
+                cellular_coordinates();
+            } catch (Exception e2) {
+                Helper.add_log_line(getContext(), "error in Cellular API: " + e2.getMessage());
+            }
         }
     }
 
-    private void wifi_coordinates() throws JSONException {
+    private void wifi_coordinates() throws Exception {
         JSONArray wifi = scanWifiNetworks();
-        RequestQueue queue = Volley.newRequestQueue(requireContext());
+        RequestQueue queue = Volley.newRequestQueue(getContext());
         String url = "http://nogpsnavigator.top/wifi";
         // Request a string response from the provided URL.
         // Request a JSONObject response from the provided URL
@@ -214,15 +231,20 @@ public class SecondFragment extends Fragment {
                         // Handle response
                         try {
                             JSONObject server_response = response.getJSONObject(0);
+                            if (!server_response.getBoolean("isValid")) {
+                                Helper.add_log_line(getContext(), server_response.getString("error"));
+                                Toast.makeText(getContext(), "Failed getting location by wifi", Toast.LENGTH_SHORT).show();
+                                throw new JSONException("Failed to get location by wifi");
+                            }
                             JSONObject inner_location = server_response.getJSONObject("location");
 
                             String lating = inner_location.getString("latitude") + ", " + inner_location.getString("longitude");
-                            add_log_line("location from wifi: " + lating);
+                            Helper.add_log_line(getContext(), "location from wifi: " + lating);
                             translate_coordinates(lating);
 
                         } catch (JSONException e) {
-                            Toast.makeText(requireContext(), e.toString(), Toast.LENGTH_SHORT).show();
-                            add_log_line("Error in wifi API, fallback to cellular location (" + e.toString() + ")");
+                            Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
+                            Helper.add_log_line(getContext(), "error in wifi API, fallback to cellular location (" + e.toString() + ")");
                             cellular_coordinates();
                         }
                     }
@@ -230,7 +252,8 @@ public class SecondFragment extends Fragment {
             @Override
             public void onErrorResponse(VolleyError error) {
                 // Handle error
-                add_log_line("Error in wifi API, fallback to cellular location (" + error.toString() + ")");
+                String description = Helper.volley_error_description(error);
+                Helper.add_log_line(getContext(), "error in wifi API, fallback to cellular location (" + description + ")");
                 cellular_coordinates();
             }
         });
@@ -240,10 +263,10 @@ public class SecondFragment extends Fragment {
     }
 
 
-    public JSONArray scanWifiNetworks() throws JSONException {
+    public JSONArray scanWifiNetworks() throws Exception {
 
 
-        wifiManager = (WifiManager) requireContext().getSystemService(Context.WIFI_SERVICE);
+        wifiManager = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
 
         // Ensure Wi-Fi is enabled
         if (!wifiManager.isWifiEnabled()) {
@@ -253,11 +276,15 @@ public class SecondFragment extends Fragment {
         // Start Wi-Fi scan
         wifiManager.startScan();
 
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            throw new Exception("FINE LOCATION Permission missing");
+        }
         List<ScanResult> scanResults = wifiManager.getScanResults();
         JSONArray networksArray = new JSONArray();
 
         for (ScanResult result : scanResults) {
             JSONObject network = new JSONObject();
+            network.put("ssid", result.SSID);
             network.put("macAddress", result.BSSID);
             networksArray.put(network);
         }
@@ -265,6 +292,7 @@ public class SecondFragment extends Fragment {
         if (networksArray.length() == 0) {
             throw new JSONException("Empty array");
         }
+        Helper.add_log_line(getContext(), "number of wifi scanned: " + String.valueOf(networksArray.length()));
 
 
         return networksArray;
@@ -289,7 +317,9 @@ public class SecondFragment extends Fragment {
     }
 
     private void translate_coordinates(String coordinates) {
-        RequestQueue queue = Volley.newRequestQueue(requireContext());
+        Helper.add_log_line(getContext(), "trying to reverse geocoding " + coordinates);
+
+        RequestQueue queue = Volley.newRequestQueue(getContext());
         String url = "http://nogpsnavigator.top/reverse-geocoding/" + coordinates;
 
         // set coordinates at xy box
@@ -301,11 +331,14 @@ public class SecondFragment extends Fragment {
                 response -> {
                     EditText source_text = (EditText) getView().findViewById(R.id.starting_point_text);
                     source_text.setText(response.replaceAll("\"", ""));
+                    Helper.add_log_line(getContext(), "success in reverse geocoding to " + response);
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(requireContext(), "Failed translate coordinates, Try again!", Toast.LENGTH_SHORT).show();
-                add_log_line("Failed translate coordinates: " + error.toString());
+                Toast.makeText(getContext(), "failed translate coordinates, Try again!", Toast.LENGTH_SHORT).show();
+
+                String description = Helper.volley_error_description(error);
+                Helper.add_log_line(getContext(), "failed translate coordinates: " + description);
 
             }
 
@@ -315,19 +348,26 @@ public class SecondFragment extends Fragment {
         queue.add(stringRequest);
     }
 
-    private void add_log_line(String log_line) {
-        SharedPreferences logger = getContext().getSharedPreferences("logs", MODE_PRIVATE);
-
-        String logs = logger.getString("content", "");
-
-        if (logs.length() == 0) {
-            logs = "[+] " + log_line;
-        } else {
-            logs = logs + "\n[+] " + log_line;
+    private boolean validate_locations() {
+        boolean result = true;
+        EditText source = (EditText) getView().findViewById(R.id.starting_point_xy);
+        if (source.getText().toString().isEmpty()) {
+            setLocation();
+            result = false;
         }
 
-        SharedPreferences.Editor edit = logger.edit();
-        edit.putString("content", logs);
-        edit.commit();
+        EditText destination_text = (EditText) getView().findViewById(R.id.ending_point_text);
+        EditText destination_xy = (EditText) getView().findViewById(R.id.ending_point_xy);
+        if (destination_xy.getText().toString().isEmpty()) {
+            if (destination_text.getText().toString().isEmpty()) {
+                destination_text.setText("Please type address");
+            } else {
+                setStreetName(destination_text, destination_xy);
+                result = false;
+            }
+        }
+
+        return result;
     }
+
 }
