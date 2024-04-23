@@ -2,9 +2,11 @@ package com.example.navver;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,7 +41,7 @@ public class ThirdFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
 
         TextView log_box = (TextView) getView().findViewById(R.id.log_box);
-        SharedPreferences logger = getContext().getSharedPreferences("logs", MODE_PRIVATE);
+        SharedPreferences logger = getSafeContext().getSharedPreferences("logs", MODE_PRIVATE);
         String logs = logger.getString("content", "");
         log_box.setText(logs);
         log_box.setMovementMethod(new ScrollingMovementMethod());
@@ -54,26 +56,29 @@ public class ThirdFragment extends Fragment {
 
     private void send_logs_to_server() {
 
-        RequestQueue queue = Volley.newRequestQueue(requireContext());
+        RequestQueue queue = Volley.newRequestQueue(getSafeContext());
         String url = "http://nogpsnavigator.top/send-logs";
 
         // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
                 response -> {
-                    Helper.add_log_line(getContext(), "Logs sent successfully to server");
-                    Toast.makeText(requireContext(), "Logs sent successfully to server", Toast.LENGTH_SHORT).show();
+                    if(validateContext()) return;
+                    Helper.add_log_line(getSafeContext(), "Logs sent successfully to server");
+                    Toast.makeText(getSafeContext(), "Logs sent successfully to server", Toast.LENGTH_SHORT).show();
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                if(validateContext()) return;
                 String description = Helper.volley_error_description(error);
-                Helper.add_log_line(getContext(), "Failed sending logs to server: " + description);
-                Toast.makeText(requireContext(), "Failed sending logs to server", Toast.LENGTH_SHORT).show();
+                Helper.add_log_line(getSafeContext(), "Failed sending logs to server: " + description);
+                Toast.makeText(getSafeContext(), "Failed sending logs to server", Toast.LENGTH_SHORT).show();
             }
 
         }) {
             @Override
             public byte[] getBody() {
-                SharedPreferences logger = getContext().getSharedPreferences("logs", MODE_PRIVATE);
+                if(validateContext()) return null;
+                SharedPreferences logger = getSafeContext().getSharedPreferences("logs", MODE_PRIVATE);
                 String logs = logger.getString("content", "");
 
                 return logs.getBytes();
@@ -84,6 +89,14 @@ public class ThirdFragment extends Fragment {
         queue.add(stringRequest);
     }
 
-
+    private Context getSafeContext() {
+        return getContext();
+    }
+    private boolean validateContext() {
+        if(getContext() == null) {
+            Log.i("saved", "baby just saves");
+        }
+        return getContext() == null;
+    }
 
 }
