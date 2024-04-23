@@ -55,7 +55,7 @@ def get_lating_from_address(address: str) -> Dict:
                                       str(result['results'][0]['geometry']['location']['lng'])),
                         'address': result['results'][0]['formatted_address']}
             except (KeyError, IndexError):
-                return {'lating': '0, 0', 'address': 'Address not found. try again'}
+                return {'lating': '0, 0', 'address': 'unknown'}
 
     except Exception as e:
         return str(e)

@@ -1,3 +1,4 @@
 config/config.yaml
-.idea
-.venv
+user_logs/*
+.idea/
+.venv/

@@ -1,7 +1,6 @@
 <?xml version = "1.0" encoding = "utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -266,18 +265,32 @@
             android:paddingTop="20dp"
             android:textDirection="rtl">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="תיבת לוגים"
-                android:textSize="20sp" />
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="תיבת לוגים"
+                    android:textSize="20sp" />
+
+                <Button
+                    android:id="@+id/send_logs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="שלח לבדיקה" />
+            </LinearLayout>
+
             <TextView
+                android:id="@+id/log_box"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scrollbars = "vertical"
-                android:textDirection="ltr"
-                android:hint="[+] Application created"
-                android:id="@+id/log_box"/>
+                android:hint="@string/hint_log"
+                android:scrollbars="vertical"
+                android:textDirection="ltr" />
 
         </LinearLayout>
     </LinearLayout>

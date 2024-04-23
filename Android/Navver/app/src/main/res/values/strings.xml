@@ -32,4 +32,5 @@
     <string name="status">סטטוס תקינות</string>
     <string name="na_status">N/A</string>
     <string name="application_created">[+] Application created</string>
+    <string name="hint_log">[+] Application created</string>
 </resources>

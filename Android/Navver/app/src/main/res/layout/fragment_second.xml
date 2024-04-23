@@ -80,7 +80,7 @@
             android:layout_marginBottom="5dp"
             android:layout_weight="1"
             android:backgroundTint="#FF5722"
-            android:text="חשב מיקום נוכחי"
+            android:text="מיקום נוכחי"
             app:icon="@android:drawable/ic_dialog_map" />
 
         <Button

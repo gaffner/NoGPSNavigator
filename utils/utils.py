@@ -1,6 +1,11 @@
+import asyncio
+import logging
+import os
+from datetime import datetime
 from typing import List, Dict
 
 import yaml
+from fastapi import Request
 
 
 def read_config() -> Dict:
@@ -27,3 +32,13 @@ def convert_nogps_request_to_google_request(request: List[Dict]):
     converted = [{'macAddress': access_point['macAddress']} for access_point in request]
 
     return converted
+
+
+def save_user_logs(request: Request):
+    ip, body = request.client.host, asyncio.run(request.body())
+    current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    with open(os.path.join('user_logs', f'{ip}_{current_time}.log'), 'wb') as f:
+        f.write(body)
+
+    f.close()
+    logging.info(f'Saved logs to {ip}_{current_time}.log')
