@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
@@ -54,17 +55,19 @@ public class ThirdFragment extends Fragment {
     private void send_logs_to_server() {
 
         RequestQueue queue = Volley.newRequestQueue(requireContext());
-        String url = "http://192.168.1.193:8080/send-logs";
+        String url = "http://nogpsnavigator.top/send-logs";
 
         // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
                 response -> {
                     Helper.add_log_line(getContext(), "Logs sent successfully to server");
+                    Toast.makeText(requireContext(), "Logs sent successfully to server", Toast.LENGTH_SHORT).show();
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 String description = Helper.volley_error_description(error);
                 Helper.add_log_line(getContext(), "Failed sending logs to server: " + description);
+                Toast.makeText(requireContext(), "Failed sending logs to server", Toast.LENGTH_SHORT).show();
             }
 
         }) {

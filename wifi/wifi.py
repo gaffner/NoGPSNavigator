@@ -39,6 +39,7 @@ def get_location_from_wifi(access_points: List[Dict]) -> List:
         if response.status_code == 200:  # Check if the request was successful
             result = response.json()
             data = {
+                'isValid': True,
                 'location':
                     {
                         'latitude': result['location']['lat'],
@@ -53,11 +54,13 @@ def get_location_from_wifi(access_points: List[Dict]) -> List:
             return [data]
         else:
             return [{
+                'isValid': False,
                 'module': 'google',
                 'error': response.json()['error']['message']
             }]
     except Exception as e:
         return [{
+            'isValid': False,
             'module': 'google',
             'error': str(e)
         }]
