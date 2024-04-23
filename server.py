@@ -32,7 +32,7 @@ def geocoding(request: Request, address: str):
 
 
 @app.get('/reverse-geocoding/{lating}')
-def reverse_geocoding(lating: str):
+def reverse_geocoding(request: Request, lating: str):
     logging.info(f"{request.client.host} ask Getting strret name for {lating}")
     return get_address_from_lating(lating)
 
