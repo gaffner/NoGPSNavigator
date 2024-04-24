@@ -1,0 +1,3 @@
+[submodule "LocationProviders"]
+	path = LocationProviders
+	url = git@github.com:ohadcn/AndroidLocationProviders.git
