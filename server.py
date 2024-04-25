@@ -7,7 +7,7 @@ import utils
 from geocoding import get_address_from_lating, get_lating_from_address
 from wifi import get_location_from_wifi
 
-logging.basicConfig(filename='/var/log/gps.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', encoding='utf-16')
+logging.basicConfig(filename='gps.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', encoding='utf-16')
 app = FastAPI()
 
 
