@@ -34,7 +34,7 @@ def read_borders() -> Dict:
     Loads the borders file
     """
     try:
-        with open('config/config.yaml', 'r') as borders_file:
+        with open('config/borders.json', 'r') as borders_file:
             parsed_borders = json.load(borders_file)
             return parsed_borders
     except FileNotFoundError:
