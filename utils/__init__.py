@@ -1,1 +1,1 @@
-from utils.utils import convert_nogps_request_to_google_request, read_config, save_user_logs
+from utils.utils import convert_nogps_request_to_google_request, read_config, save_user_logs, verify_in_israel

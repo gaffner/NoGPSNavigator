@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import List, Dict
 
 import yaml
+import json
 from fastapi import Request
 
 
@@ -28,6 +29,20 @@ def read_config() -> Dict:
         return {'error': 'Error parsing config.yaml file'}
 
 
+def read_borders() -> Dict:
+    """
+    Loads the borders file
+    """
+    try:
+        with open('config/config.yaml', 'r') as borders_file:
+            parsed_borders = json.load(borders_file)
+            return parsed_borders
+    except FileNotFoundError:
+        return {'error': 'borders.json file not found'}
+    except json.JSONDecodeError:
+        return {'error': 'Error parsing borders.json file'}
+
+
 def convert_nogps_request_to_google_request(request: List[Dict]):
     converted = [{'macAddress': access_point['macAddress']} for access_point in request]
 
@@ -42,3 +57,9 @@ def save_user_logs(request: Request):
 
     f.close()
     logging.info(f'Saved logs to {ip}_{current_time}.log')
+
+
+def verify_in_israel(latitude: int, longitude: int) -> bool:
+    borders = read_borders()
+    return ((borders['latitude']['min'] <= latitude <= borders['latitude']['max'])
+            and (borders['longitude']['min'] <= longitude <= borders['longitude']['max']))
