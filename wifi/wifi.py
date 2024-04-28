@@ -1,8 +1,8 @@
 from typing import Dict, List
-
+import logging
 import requests
 
-from utils import read_config
+from utils import read_config, verify_in_israel
 from wifi.consts import default_macaddress
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
@@ -37,7 +37,17 @@ def get_location_from_wifi(access_points: List[Dict]) -> List:
             verify=not parsed_config.get('no-ssl-verify', False)
         )
         if response.status_code == 200:  # Check if the request was successful
+            # verify the location is within israel borders
             result = response.json()
+            if not verify_in_israel(result['location']['lat'], result['location']['lng']):
+                error_message = f"Location is not in israel {result['location']['lat'], result['location']['lng']}"
+                logging.info(error_message)
+                return [{
+                    'isValid': False,
+                    'module': 'google',
+                    'error': error_message
+                }]
+
             data = {
                 'isValid': True,
                 'location':
