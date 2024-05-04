@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.navver"
+    namespace = "com.navver.navver"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.navver"
+        applicationId = "com.navver.navver"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

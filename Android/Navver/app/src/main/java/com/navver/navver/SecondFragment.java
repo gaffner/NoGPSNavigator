@@ -315,7 +315,7 @@ public class SecondFragment extends Fragment {
             network.put("ssid", result.SSID);
             network.put("macAddress", result.BSSID);
             networksArray.put(network);
-            Helper.add_log_line(getSafeContext(), "scanned: " + result.BSSID);
+            Helper.add_log_line(getSafeContext(), "scanned: " + result.SSID);
         }
 
         if (networksArray.length() == 0) {
@@ -479,6 +479,7 @@ public class SecondFragment extends Fragment {
 
     private void debug_cellular() {
         if (ActivityCompat.checkSelfPermission(getSafeContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getSafeContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
             requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
             Helper.add_log_line(getSafeContext(), "ACCESS COARSE LOCATION permission asked");
         }
@@ -486,15 +487,16 @@ public class SecondFragment extends Fragment {
         List<String> providers = mLocationManager.getProviders(true);
         Location bestLocation = null;
         for (String provider : providers) {
+            Helper.add_log_line(getSafeContext(), "[--] Found Provider: " + provider);
             Location l = mLocationManager.getLastKnownLocation(provider);
             if (l == null) {
                 continue;
             }
             if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
                 // Found best last known location: %s", l);
+                Helper.add_log_line(getSafeContext(), "[--] Found Location: " + provider);
                 bestLocation = l;
             }
         }
-        return bestLocation;
     }
 }
