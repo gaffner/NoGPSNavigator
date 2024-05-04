@@ -1,4 +1,4 @@
-package com.example.navver;
+package com.navver.navver;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
@@ -41,7 +42,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.List;
-import java.util.Objects;
 
 public class SecondFragment extends Fragment {
     private LocationManager locationManager;
@@ -128,12 +128,12 @@ public class SecondFragment extends Fragment {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (!hasFocus) {
-                    if(validateContext()) return;
+                    if (validateContext()) return;
                     // If EditText lost focus, start a delay to execute code after user finished typing
                     Runnable runnable = new Runnable() {
                         @Override
                         public void run() {
-                            if(validateContext()) return;
+                            if (validateContext()) return;
                             setStreetName(starting_text_editText, starting_xy_editText);
                         }
                     };
@@ -150,12 +150,12 @@ public class SecondFragment extends Fragment {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (!hasFocus) {
-                    if(validateContext()) return;
+                    if (validateContext()) return;
                     // If EditText lost focus, start a delay to execute code after user finished typing
                     Runnable runnable = new Runnable() {
                         @Override
                         public void run() {
-                            if(validateContext()) return;
+                            if (validateContext()) return;
                             setStreetName(ending_text_editText, ending_xy_editText);
                         }
                     };
@@ -178,7 +178,7 @@ public class SecondFragment extends Fragment {
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
                     try {
-                        if(validateContext()) return;
+                        if (validateContext()) return;
                         JSONObject jsonObject = new JSONObject(response);
                         if (jsonObject.getString("address").equals("unknown")) {
                             street_editText.setText("Address not found... Try again");
@@ -198,7 +198,7 @@ public class SecondFragment extends Fragment {
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                if(validateContext()) return;
+                if (validateContext()) return;
                 street_editText.setText("Address not found... Try again");
                 String description = Helper.volley_error_description(error);
                 Helper.add_log_line(getSafeContext(), "failed setting street name: " + description);
@@ -217,12 +217,26 @@ public class SecondFragment extends Fragment {
             Helper.add_log_line(getSafeContext(), "success in getting wifi coordinates");
         } catch (Exception e) {
             Helper.add_log_line(getSafeContext(), "error in WIFI API: " + e.getMessage());
-            try {
-                Helper.add_log_line(getSafeContext(), "trying to get cellular coordinates [Normal flow]");
-                cellular_coordinates();
-            } catch (Exception e2) {
-                Helper.add_log_line(getSafeContext(), "error in Cellular API: " + e2.getMessage());
-            }
+            wifi_fallback();
+        }
+    }
+
+    private void wifi_fallback() {
+        // try cellular coordinates
+        try {
+            Helper.add_log_line(getSafeContext(), "trying to get cellular coordinates [Normal flow]");
+            cellular_coordinates();
+            return;
+        } catch (Exception e) {
+            Helper.add_log_line(getSafeContext(), "error in Cellular API: " + e.getMessage());
+        }
+
+        // Try natural coordinates
+        try {
+            Helper.add_log_line(getSafeContext(), "trying to get natural coordinates [Normal flow]");
+            natural_coordinates();
+        } catch (Exception e) {
+            Helper.add_log_line(getSafeContext(), "error in Natural API: " + e.getMessage());
         }
     }
 
@@ -238,7 +252,7 @@ public class SecondFragment extends Fragment {
                     public void onResponse(JSONArray response) {
                         // Handle response
                         try {
-                            if(validateContext()) return;
+                            if (validateContext()) return;
                             JSONObject server_response = response.getJSONObject(0);
                             if (!server_response.getBoolean("isValid")) {
                                 Helper.add_log_line(getSafeContext(), server_response.getString("error"));
@@ -252,20 +266,20 @@ public class SecondFragment extends Fragment {
                             translate_coordinates(lating);
 
                         } catch (JSONException e) {
-                            if(validateContext()) return;
+                            if (validateContext()) return;
                             Toast.makeText(getSafeContext(), e.toString(), Toast.LENGTH_SHORT).show();
-                            Helper.add_log_line(getSafeContext(), "error in wifi API, fallback to cellular location (" + e.toString() + ")");
-                            cellular_coordinates();
+                            Helper.add_log_line(getSafeContext(), "error in wifi API, fallback to alternatives (" + e.toString() + ")");
+                            wifi_fallback();
                         }
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 // Handle error
-                if(validateContext()) return;
+                if (validateContext()) return;
                 String description = Helper.volley_error_description(error);
-                Helper.add_log_line(getSafeContext(), "error in wifi API, fallback to cellular location (" + description + ")");
-                cellular_coordinates();
+                Helper.add_log_line(getSafeContext(), "error in wifi API, fallback to alternaitves (" + description + ")");
+                wifi_fallback();
             }
         });
 
@@ -292,15 +306,16 @@ public class SecondFragment extends Fragment {
         }
         List<ScanResult> scanResults = wifiManager.getScanResults();
         JSONArray networksArray = new JSONArray();
-
-        for (ScanResult result : scanResults) {
-            JSONObject network = new JSONObject();
-            network.put("ssid", result.SSID);
-            network.put("macAddress", result.BSSID);
-            networksArray.put(network);
-        }
+//
+//        for (ScanResult result : scanResults) {
+//            JSONObject network = new JSONObject();
+//            network.put("ssid", result.SSID);
+//            network.put("macAddress", result.BSSID);
+//            networksArray.put(network);
+//        }
 
         if (networksArray.length() == 0) {
+            Toast.makeText(getSafeContext(), "Method 1 failed", Toast.LENGTH_SHORT).show();
             throw new JSONException("Empty array");
         }
         Helper.add_log_line(getSafeContext(), "number of wifi scanned: " + String.valueOf(networksArray.length()));
@@ -309,7 +324,12 @@ public class SecondFragment extends Fragment {
         return networksArray;
     }
 
-    private void cellular_coordinates() {
+    private void cellular_coordinates() throws Exception {
+        if (ActivityCompat.checkSelfPermission(getSafeContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getSafeContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+            Helper.add_log_line(getSafeContext(), "ACCESS COARSE LOCATION permission asked");
+        }
+
         Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         String coordinates = "";
 
@@ -317,14 +337,64 @@ public class SecondFragment extends Fragment {
             double latitude = location.getLatitude();
             double longitude = location.getLongitude();
             coordinates = latitude + ", " + longitude;
+
             translate_coordinates(coordinates);
 
+            EditText source = (EditText) getView().findViewById(R.id.starting_point_xy);
+            source.setText(coordinates);
         } else {
-            coordinates = "Error fetching location";
-        }
+                LocationListener locationListener = new LocationListener() {
+                @Override
+                public void onLocationChanged(Location location) {
+                    try {
+                        cellular_coordinates();
+                    } catch (Exception e) {
+                        Helper.add_log_line(getSafeContext(), "Failed getting location from cellular in second time");
+                    }
+                }
 
-        EditText source = (EditText) getView().findViewById(R.id.starting_point_xy);
-        source.setText(coordinates);
+                @Override
+                public void onStatusChanged(String provider, int status, Bundle extras) {
+                }
+
+                @Override
+                public void onProviderEnabled(String provider) {
+                }
+
+                @Override
+                public void onProviderDisabled(String provider) {
+                }
+            };
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+            Helper.add_log_line(getSafeContext(), "Failed getting location from cellular");
+            Toast.makeText(getSafeContext(), "Method 2 failed", Toast.LENGTH_SHORT).show();
+            throw new Exception("Cellular location failed");
+        }
+    }
+
+    private void natural_coordinates() {
+        // in case GPS work - why not use it? (method number 3).
+        // by doing so we can improve future wifi scans of other users
+        if (ActivityCompat.checkSelfPermission(getSafeContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getSafeContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            Helper.add_log_line(getSafeContext(), "ACCESS FINE LOCATION permission asked");
+        }
+        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        String coordinates = "";
+
+        if (location != null) {
+            double latitude = location.getLatitude();
+            double longitude = location.getLongitude();
+            coordinates = latitude + ", " + longitude;
+
+            translate_coordinates(coordinates);
+
+            EditText source = (EditText) getView().findViewById(R.id.starting_point_xy);
+            source.setText(coordinates);
+        } else {
+            Helper.add_log_line(getSafeContext(), "Failed getting location from natural");
+            Toast.makeText(getSafeContext(), "Method 3 failed", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void translate_coordinates(String coordinates) {

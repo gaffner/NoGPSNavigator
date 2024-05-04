@@ -1,4 +1,4 @@
-package com.example.navver;
+package com.navver.navver;
 
 import static android.content.Context.MODE_PRIVATE;
 
