@@ -59,7 +59,7 @@ def save_user_logs(request: Request):
     logging.info(f'Saved logs to {ip}_{current_time}.log')
 
 
-def verify_in_israel(latitude: int, longitude: int) -> bool:
+def verify_in_israel(latitude: float, longitude: float) -> bool:
     borders = read_borders()
     return ((borders['latitude']['min'] <= latitude <= borders['latitude']['max'])
             and (borders['longitude']['min'] <= longitude <= borders['longitude']['max']))

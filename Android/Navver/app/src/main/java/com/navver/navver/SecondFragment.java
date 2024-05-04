@@ -214,8 +214,9 @@ public class SecondFragment extends Fragment {
     private void setLocation() {
         try {
             Helper.add_log_line(getSafeContext(), "trying to get wifi coordinates");
-            wifi_coordinates();
-            Helper.add_log_line(getSafeContext(), "success in getting wifi coordinates");
+            throw new Exception("Mock wifi error");
+//            wifi_coordinates();
+//            Helper.add_log_line(getSafeContext(), "success in getting wifi coordinates");
         } catch (Exception e) {
             Helper.add_log_line(getSafeContext(), "error in WIFI API: " + e.getMessage());
             wifi_fallback();
@@ -315,7 +316,7 @@ public class SecondFragment extends Fragment {
             network.put("ssid", result.SSID);
             network.put("macAddress", result.BSSID);
             networksArray.put(network);
-            Helper.add_log_line(getSafeContext(), "scanned: " + result.SSID);
+            Helper.add_log_line(getSafeContext(), "scanned: " + result.SSID + " - " + result.BSSID);
         }
 
         if (networksArray.length() == 0) {
@@ -334,7 +335,8 @@ public class SecondFragment extends Fragment {
             Helper.add_log_line(getSafeContext(), "ACCESS COARSE LOCATION permission asked");
         }
 
-        Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+//        Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        Location location = null;
         String coordinates = "";
 
         if (location != null) {

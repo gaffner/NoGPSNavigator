@@ -2,10 +2,13 @@ from typing import Dict
 
 import requests
 
-from utils import read_config
+from utils import read_config, verify_in_israel
 
 
 def get_address_from_lating(lating: str) -> str:
+    if len(lating.split(', ')) > 0 and not verify_in_israel(int(lating.split(', ')[0]), int(lating.split(', ')[1])):
+        return "Location is too far, please try again"
+
     parsed_config = read_config()
     api_key = parsed_config.get('google_api')
     headers = {
