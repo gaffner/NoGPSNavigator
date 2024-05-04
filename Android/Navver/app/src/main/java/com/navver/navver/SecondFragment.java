@@ -1,5 +1,6 @@
 package com.navver.navver;
 
+import static android.content.Context.LOCATION_SERVICE;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.Manifest;
@@ -85,7 +86,7 @@ public class SecondFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        locationManager = (LocationManager) getSafeContext().getSystemService(Context.LOCATION_SERVICE);
+        locationManager = (LocationManager) getSafeContext().getSystemService(LOCATION_SERVICE);
 
         return inflater.inflate(R.layout.fragment_second, container, false);
     }
@@ -290,29 +291,32 @@ public class SecondFragment extends Fragment {
 
     public JSONArray scanWifiNetworks() throws Exception {
 
+        if (ActivityCompat.checkSelfPermission(getSafeContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Helper.add_log_line(getSafeContext(), "Asking for FINE LOCATION permissions");
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        }
 
         wifiManager = (WifiManager) getSafeContext().getSystemService(Context.WIFI_SERVICE);
 
         // Ensure Wi-Fi is enabled
         if (!wifiManager.isWifiEnabled()) {
+            Helper.add_log_line(getSafeContext(), "WIFI is not enabled, enabling...");
             wifiManager.setWifiEnabled(true);
         }
 
         // Start Wi-Fi scan
         wifiManager.startScan();
 
-        if (ActivityCompat.checkSelfPermission(getSafeContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            throw new Exception("FINE LOCATION Permission missing");
-        }
         List<ScanResult> scanResults = wifiManager.getScanResults();
         JSONArray networksArray = new JSONArray();
-//
-//        for (ScanResult result : scanResults) {
-//            JSONObject network = new JSONObject();
-//            network.put("ssid", result.SSID);
-//            network.put("macAddress", result.BSSID);
-//            networksArray.put(network);
-//        }
+
+        for (ScanResult result : scanResults) {
+            JSONObject network = new JSONObject();
+            network.put("ssid", result.SSID);
+            network.put("macAddress", result.BSSID);
+            networksArray.put(network);
+            Helper.add_log_line(getSafeContext(), "scanned: " + result.BSSID);
+        }
 
         if (networksArray.length() == 0) {
             Toast.makeText(getSafeContext(), "Method 1 failed", Toast.LENGTH_SHORT).show();
@@ -343,13 +347,22 @@ public class SecondFragment extends Fragment {
             EditText source = (EditText) getView().findViewById(R.id.starting_point_xy);
             source.setText(coordinates);
         } else {
-                LocationListener locationListener = new LocationListener() {
+            LocationListener locationListener = new LocationListener() {
                 @Override
-                public void onLocationChanged(Location location) {
+                public void onLocationChanged(Location Nlocation) {
                     try {
-                        cellular_coordinates();
+                        Helper.add_log_line(getSafeContext(), "[--] Location changed using cellular");
+                        if (Nlocation != null) {
+                            double latitude = Nlocation.getLatitude();
+                            double longitude = Nlocation.getLongitude();
+                            String coordinates_n = latitude + ", " + longitude;
+                            Helper.add_log_line(getSafeContext(), "[--] Location using cellular is: " + coordinates_n);
+                        } else {
+                            Helper.add_log_line(getSafeContext(), "[--] Location is still null");
+                        }
+
                     } catch (Exception e) {
-                        Helper.add_log_line(getSafeContext(), "Failed getting location from cellular in second time");
+                        Helper.add_log_line(getSafeContext(), "[--] Failed getting location from cellular in second time" + e.toString());
                     }
                 }
 
@@ -410,14 +423,14 @@ public class SecondFragment extends Fragment {
         // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
-                    if(validateContext()) return;
+                    if (validateContext()) return;
                     EditText source_text = (EditText) getView().findViewById(R.id.starting_point_text);
                     source_text.setText(response.replaceAll("\"", ""));
                     Helper.add_log_line(getSafeContext(), "success in reverse geocoding to " + response);
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                if(validateContext()) return;
+                if (validateContext()) return;
                 Toast.makeText(getSafeContext(), "failed translate coordinates, Try again!", Toast.LENGTH_SHORT).show();
 
                 String description = Helper.volley_error_description(error);
@@ -458,9 +471,30 @@ public class SecondFragment extends Fragment {
     }
 
     private boolean validateContext() {
-        if(getContext() == null) {
+        if (getContext() == null) {
             Log.i("saved", "baby just saves");
         }
         return getContext() == null;
+    }
+
+    private void debug_cellular() {
+        if (ActivityCompat.checkSelfPermission(getSafeContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getSafeContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+            Helper.add_log_line(getSafeContext(), "ACCESS COARSE LOCATION permission asked");
+        }
+        LocationManager mLocationManager = (LocationManager) getSafeContext().getSystemService(LOCATION_SERVICE);
+        List<String> providers = mLocationManager.getProviders(true);
+        Location bestLocation = null;
+        for (String provider : providers) {
+            Location l = mLocationManager.getLastKnownLocation(provider);
+            if (l == null) {
+                continue;
+            }
+            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
+                // Found best last known location: %s", l);
+                bestLocation = l;
+            }
+        }
+        return bestLocation;
     }
 }
