@@ -1,4 +1,4 @@
-package com.example.navver;
+package com.navver.navver;
 
 import android.os.Bundle;
 
