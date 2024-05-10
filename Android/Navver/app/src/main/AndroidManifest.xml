@@ -20,7 +20,7 @@
         android:theme="@style/Theme.Navver"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name="com.navver.navver.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
