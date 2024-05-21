@@ -1,8 +1,10 @@
+from datetime import datetime
 import logging
 from typing import List, Dict
 
 from fastapi import FastAPI, Request
 
+from DBSaver.DBSaver import DBSaver
 import utils
 from geocoding import get_address_from_lating, get_lating_from_address
 from wifi import get_location_from_wifi
@@ -10,6 +12,8 @@ from wifi import get_location_from_wifi
 logging.basicConfig(filename='gps.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', encoding='utf-16')
 app = FastAPI()
 
+# Initialize DBSaver instance
+db_saver = DBSaver()
 
 @app.get('/')
 def root(request: Request):
@@ -21,7 +25,11 @@ def root(request: Request):
 def wifi(request: Request, access_points: List[Dict]):
     converted_request = utils.convert_nogps_request_to_google_request(access_points)
     logging.info(f"Wifi list from: {request.client.host} is: {access_points}")
-
+    
+    for ap in access_points:
+        ap['timestamp'] = datetime.now().isoformat()
+        db_saver.save_wifi_to_db(ap)
+    
     return get_location_from_wifi(converted_request)
 
 
